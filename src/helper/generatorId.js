@@ -1,3 +1,3 @@
-export default function generateIntegerID() {
-    return Math.floor(1000 + Math.random() * 9000); // Generates a number between 1000 and 9999
+export default function generateIntegerID(minNumber=1000,maxNumber=9000) {
+    return Math.floor(minNumber + Math.random() * maxNumber); // Generates a number between 1000 and 9999
 }

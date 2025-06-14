@@ -1,17 +1,18 @@
 import express from 'express'
-
-import { getAllUsers,createUser, getusersById,deleteUserById, editUsersById } from '../controllers/user.js'
+import { verifyToken } from '../helper/jwt.js'
+import { getAllUsers,register,login, getusersById,deleteUserById, editUsersById } from '../controllers/user.js'
 import { validateAddUser, validateEditUser } from '../validations/userValidations.js'
 
 const userRoutes = express.Router()
 
 
 
-userRoutes.get("/",getAllUsers)
-userRoutes.get("/:id",getusersById)
-userRoutes.post("/",validateAddUser,createUser)
-userRoutes.delete("/:id",deleteUserById)
-userRoutes.put("/:id",validateEditUser,editUsersById)
+userRoutes.get("/",verifyToken,getAllUsers)
+userRoutes.get("/:id",verifyToken,getusersById)
+userRoutes.post("/register",validateAddUser,register)
+userRoutes.post("/login",validateAddUser,login)
+userRoutes.delete("/:id",verifyToken,deleteUserById)
+userRoutes.put("/:id",validateEditUser,verifyToken,editUsersById)
 
 
 

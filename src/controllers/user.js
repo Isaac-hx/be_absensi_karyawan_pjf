@@ -1,7 +1,9 @@
 import { pool } from "../config/db.js";
-import { validationResult } from "express-validator";
+
 import bcrypt, { hash } from "bcryptjs";
 import generateIntegerID from "../helper/generatorId.js";
+import { generateAccessToken } from "../helper/jwt.js";
+import { validationResult } from "express-validator";
 
 export const getAllUsers = async(req,res)=>{
     try{
@@ -12,7 +14,7 @@ export const getAllUsers = async(req,res)=>{
     }
 }
 
-export const createUser = async (req, res) => {
+export const register = async (req, res) => {
     try {
         // Handle validation results
         const errors = validationResult(req);
@@ -26,11 +28,42 @@ export const createUser = async (req, res) => {
 
         // Use parameterized query to prevent SQL injection
         const [result] = await pool.query(
-            'INSERT INTO users (id,name,password,status) VALUES (?,?, ?, ?)',
+            'INSERT INTO users (id,username,password,status) VALUES (?,?, ?, ?)',
             [id, username, hash_password, status]
         );
 
         res.status(201).json({ message: "user created", data: {username} });
+    } catch (e) {
+        res.status(500).json({ message: "Error creating user", error: e });
+    }
+};
+
+export const login = async (req, res) => {
+    try {
+     
+        
+        // Extract validated input
+        const { username, password } = req.body;
+
+        // Use parameterized query to prevent SQL injection
+        const [rows] = await pool.query(
+            'SELECT * FROM users WHERE username = ? AND status = "active"',
+            [username]
+        );
+
+        if (rows.length ===0){
+            return res.status(401).json({ message: "Invalid username or password!" });
+            
+        }
+        const user = rows[0]
+        const isMatch = await bcrypt.compare(password,user.password)
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid username or password' });
+        }
+        const token = generateAccessToken({ id: user.id, username: user.username });
+        res.setHeader('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=3600;`);
+
+        res.status(200).json({ message: "Login sucessful", token:token });
     } catch (e) {
         res.status(500).json({ message: "Error creating user", error: e.message });
     }
@@ -119,3 +152,5 @@ export const editUsersById = async (req, res) => {
         res.status(500).json({ message: "Error updating users", error });
     }
 };
+
+
