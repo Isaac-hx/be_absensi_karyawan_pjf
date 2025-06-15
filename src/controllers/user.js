@@ -7,8 +7,36 @@ import { validationResult } from "express-validator";
 
 export const getAllUsers = async(req,res)=>{
     try{
-        const [rows] =await pool.query('SELECT * FROM users')
-        res.json(rows)
+ let { username = "", page = 1, limit = 10 } = req.query;
+
+    // Convert to integers and handle invalid inputs
+    page = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    limit = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
+    const offset = (page - 1) * limit;
+
+    // Fetch total items count
+    const [totalResult] = await pool.query(
+      `SELECT COUNT(*) as total FROM users WHERE username LIKE ?`,
+      [`%${username}%`]
+    );
+    const totalItems = totalResult[0].total;
+
+    // Fetch paginated data
+    const [rows] = await pool.query(
+      `SELECT * FROM users WHERE username LIKE ? LIMIT ? OFFSET ?`,
+      [`%${username}%`, limit, offset]
+    );
+
+    res.status(200).json({
+      message: "Data fetched successfully",
+      data: rows,
+      pagination: {
+        current_page: page,
+        total_items: totalItems,
+        total_pages: Math.ceil(totalItems / limit),
+        items_per_page: limit,
+      },
+    });
     }catch(e){
         res.status(500).json({message:"Error fetching data",e})
     }
@@ -131,7 +159,7 @@ export const editUsersById = async (req, res) => {
         // Update fields only if provided
         const fieldsToUpdate = {};
         if (username) fieldsToUpdate.username = username;
-        if (password) fieldsToUpdate.no_telp = password;
+        if (password) fieldsToUpdate.password = password;
         if (status) fieldsToUpdate.status = status;
 
         const [updateResult] = await pool.query(

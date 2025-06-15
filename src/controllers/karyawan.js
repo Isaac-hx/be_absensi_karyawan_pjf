@@ -2,14 +2,43 @@ import { pool } from "../config/db.js";
 import { validationResult } from "express-validator";
 import generateIntegerID from "../helper/generatorId.js";
 
-export const getAllKaryawan = async(req,res)=>{
-    try{
-        const [rows] =await pool.query('SELECT * FROM karyawan')
-        res.json(rows)
-    }catch(e){
-        res.status(500).json({message:"Error fetching data",e})
-    }
-}
+export const getAllKaryawan = async (req, res) => {
+  try {
+    let { name = "", page = 1, limit = 10 } = req.query;
+
+    // Convert to integers and handle invalid inputs
+    page = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
+    limit = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 10;
+    const offset = (page - 1) * limit;
+
+    // Fetch total items count
+    const [totalResult] = await pool.query(
+      `SELECT COUNT(*) as total FROM karyawan WHERE name LIKE ?`,
+      [`%${name}%`]
+    );
+    const totalItems = totalResult[0].total;
+
+    // Fetch paginated data
+    const [rows] = await pool.query(
+      `SELECT * FROM karyawan WHERE name LIKE ? LIMIT ? OFFSET ?`,
+      [`%${name}%`, limit, offset]
+    );
+
+    res.status(200).json({
+      message: "Data fetched successfully",
+      data: rows,
+      pagination: {
+        current_page: page,
+        total_items: totalItems,
+        total_pages: Math.ceil(totalItems / limit),
+        items_per_page: limit,
+      },
+    });
+  } catch (e) {
+    console.error("Error fetching paginated karyawan:", e);
+    res.status(500).json({ message: "Error fetching data", error: e.message });
+  }
+};
 
 export const createKaryawan = async (req, res) => {
     try {
@@ -96,6 +125,8 @@ export const editKaryawanById = async (req, res) => {
         // Update fields only if provided
         const fieldsToUpdate = {};
         if (name) fieldsToUpdate.name = name;
+        if (email) fieldsToUpdate.email = email;
+
         if (no_telp) fieldsToUpdate.no_telp = no_telp;
         if (gender) fieldsToUpdate.gender = gender;
 
