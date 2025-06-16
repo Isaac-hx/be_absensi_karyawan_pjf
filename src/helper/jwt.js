@@ -6,7 +6,6 @@ dotenv.config()
 const secret_key = process.env.TOKEN_SECRET;
 
 export const generateAccessToken = (user) => {
-    console.log(secret_key)
     if (!secret_key) {
         throw new Error('TOKEN_SECRET environment variable is not set');
     }
@@ -22,8 +21,6 @@ export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1]; // Get token after "Bearer"
 
-  // Log the token for debugging purposes
-  console.log("Extracted Token:", token);
   // Check if the token is missing
   if (!token) {
     return res.status(401).json({ message: "Authorization token is missing or invalid." });

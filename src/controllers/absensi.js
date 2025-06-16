@@ -3,9 +3,10 @@ import { pool } from "../config/db.js";
 import generateIntegerID from "../helper/generatorId.js";
 import { validationResult } from "express-validator";
 
+
 export const getAllAbsensi = async(req,res)=>{
     try{
-    let { search = "", page = 1, limit = 10 } = req.query;
+    let { search = "", page = 1, limit = 10,order="ASC" } = req.query;
 
     // Convert `page` and `limit` to integers and set defaults
     page = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
@@ -30,8 +31,9 @@ export const getAllAbsensi = async(req,res)=>{
        FROM absensi 
        INNER JOIN karyawan ON absensi.karyawan_id = karyawan.id 
        WHERE karyawan.name LIKE ? 
+       ORDER BY absensi.created_at ${order}
        LIMIT ? OFFSET ?`,
-      [`%${search}%`, limit, offset]
+      [`%${search}%`,limit, offset]
     );
 
     // Response with paginated data
@@ -115,7 +117,7 @@ export const getAbsensiById = async(req,res)=>{
             return res.status(404).json({ message: `Absensi with ID ${id} not found` });
         }
 
-        res.json(rows)
+        res.json(rows[0])
     }catch(e){
         res.status(500).json({message:"Error fetching data",e})
     }}

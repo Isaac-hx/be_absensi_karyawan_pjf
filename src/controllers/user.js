@@ -5,9 +5,24 @@ import generateIntegerID from "../helper/generatorId.js";
 import { generateAccessToken } from "../helper/jwt.js";
 import { validationResult } from "express-validator";
 
+
+export const getTotalUsers = async (req,res)=>{
+    try{
+        const [totalResult] = await pool.query('SELECT count(*) as total FROM users')
+        const totalUser = totalResult[0].total
+        res.status(200).json({
+            total_user:totalUser
+
+        }
+        )
+    }catch(e){
+    res.status(500).json({ message: "Error fetching data", error: e.message });
+    }
+}
+
 export const getAllUsers = async(req,res)=>{
     try{
- let { username = "", page = 1, limit = 10 } = req.query;
+ let { username = "", page = 1, limit = 10,order="ASC" } = req.query;
 
     // Convert to integers and handle invalid inputs
     page = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
@@ -23,7 +38,7 @@ export const getAllUsers = async(req,res)=>{
 
     // Fetch paginated data
     const [rows] = await pool.query(
-      `SELECT * FROM users WHERE username LIKE ? LIMIT ? OFFSET ?`,
+      `SELECT * FROM users WHERE username LIKE ? ORDER BY username ${order} LIMIT ? OFFSET ?`,
       [`%${username}%`, limit, offset]
     );
 

@@ -2,9 +2,22 @@ import { pool } from "../config/db.js";
 import { validationResult } from "express-validator";
 import generateIntegerID from "../helper/generatorId.js";
 
+export const getTotalKaryawan = async (req,res)=>{
+    try{
+        const [totalResult] = await pool.query('SELECT count(*) as total FROM karyawan')
+        const totalKaryawan = totalResult[0].total
+        res.status(200).json({
+            total_karyawan:totalKaryawan
+
+        }
+        )
+    }catch(e){
+    res.status(500).json({ message: "Error fetching data", error: e.message });
+    }
+}
 export const getAllKaryawan = async (req, res) => {
   try {
-    let { name = "", page = 1, limit = 10 } = req.query;
+    let { name = "", page = 1, limit = 10,order="ASC" } = req.query;
 
     // Convert to integers and handle invalid inputs
     page = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
@@ -20,7 +33,7 @@ export const getAllKaryawan = async (req, res) => {
 
     // Fetch paginated data
     const [rows] = await pool.query(
-      `SELECT * FROM karyawan WHERE name LIKE ? LIMIT ? OFFSET ?`,
+      `SELECT * FROM karyawan WHERE name LIKE ? ORDER BY name ${order} LIMIT ? OFFSET ?`,
       [`%${name}%`, limit, offset]
     );
 
