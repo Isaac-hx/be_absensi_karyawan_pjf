@@ -71,3 +71,4 @@ coverage/
 # Add specific files/directories from your project to ignore.
 # Example:
 # /your-custom-folder/
+.vercel

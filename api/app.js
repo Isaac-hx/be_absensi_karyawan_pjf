@@ -3,7 +3,7 @@ import express from "express"
 import router from "../src/routes/karyawan.js"
 import userRoutes from "../src/routes/user.js"
 import cookieParser from 'cookie-parser';
-import absensiRoutes from "./routes/absensi.js";
+import absensiRoutes from "../src/routes/absensi.js";
 import morgan from "morgan";
 import cors from 'cors'
 
@@ -17,9 +17,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   credentials: true, // Enable cookies or other credentials
 };
-app.get('/', (req, res) => {
-  res.send('Hey this is my API running ?')
-})
+
 
 //Middleware wesbervices
 app.use(cors(corsOptions));
