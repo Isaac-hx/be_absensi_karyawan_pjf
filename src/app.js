@@ -17,7 +17,9 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   credentials: true, // Enable cookies or other credentials
 };
-
+app.get('/', (req, res) => {
+  res.send('Hey this is my API running ?')
+})
 
 //Middleware wesbervices
 app.use(cors(corsOptions));
